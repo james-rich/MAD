@@ -45,10 +45,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view){
         EditText et1 = (EditText)findViewById(R.id.latitude);
         EditText et2 = (EditText)findViewById(R.id.longitude);
-        double lon = Double.parseDouble(et1.getText().toString());
-        double lat = Double.parseDouble(et2.getText().toString());
+        if(!et1.getText().toString().equals("") && !et2.getText().toString().equals("")) {
+            double lon = Double.parseDouble(et1.getText().toString());
+            double lat = Double.parseDouble(et2.getText().toString());
+            mv.getController().setCenter(new GeoPoint(lon, lat));
+        }else{
+            mv.getController().setCenter(new GeoPoint(50.9, -1.3));
 
-        mv.getController().setCenter(new GeoPoint(lon,lat));
+        }
     }
 
     @Override
