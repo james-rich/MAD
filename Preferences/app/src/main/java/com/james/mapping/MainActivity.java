@@ -1,8 +1,13 @@
 package com.james.mapping;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.support.v7.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -10,6 +15,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
@@ -27,25 +33,17 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // This line sets the user agent, a requirement to download OSM maps
-        Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this));
-
         setContentView(R.layout.activity_main);
 
         mv = (MapView)findViewById(R.id.map1);
 
-        //mv.setBuiltInZoomControls(true);
-        mv.getController().setZoom(16);
+
+        //mv.setVisibility(i);
+        mv.getController().setZoom(16.0);
         mv.getController().setCenter(new GeoPoint(50.917615,-1.335753));
-        mv.setTileSource(TileSourceFactory.MAPNIK);
+        mv.setTileSource(TileSourceFactory.HIKEBIKEMAP);
     }
 
-   /* public void onClick(View view){
-        EditText et1 = (EditText)findViewById(R.id.latitude);
-        EditText et2 = (EditText)findViewById(R.id.longitude);
-        double lon = Double.parseDouble(et1.getText().toString());
-        double lat = Double.parseDouble(et2.getText().toString());
-        mv.getController().setCenter(new GeoPoint(lon, lat));
-    }*/
 
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {
@@ -69,6 +67,11 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(intent, 1);
             return true;
         }
+        if(item.getItemId() == R.id.preferences){
+            Intent intent = new Intent(this, PreferencesActivity.class);
+            startActivityForResult(intent, 2);
+            return true;
+        }
 
         return false;
     }
@@ -87,7 +90,6 @@ public class MainActivity extends AppCompatActivity {
                 if(hikebikemap)
                 {
                     mv.setTileSource(TileSourceFactory.HIKEBIKEMAP);
-                    //System.out.println("HERE: " + mv.getTileProvider().getTileSource().toString());
                 }
                 else
                 {
@@ -105,6 +107,36 @@ public class MainActivity extends AppCompatActivity {
                     mv.getController().setCenter(new GeoPoint(lon, lat));
                 }
             }
+        }
+    }
+
+
+
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        IGeoPoint var = mv.getMapCenter();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("lon", String.valueOf(var.getLongitude()));
+        editor.putString("lat", String.valueOf(var.getLatitude()));
+        editor.apply();
+    }
+
+    public void onResume(){
+        super.onResume();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        double lat = Double.parseDouble ( prefs.getString("lat", "50.9") );
+        double lon = Double.parseDouble ( prefs.getString("lon", "-1.4") );
+        String viewType = prefs.getString("viewType", "MAPNIK");
+        //mv.getController().setZoom(16.0);
+        mv.getController().setCenter(new GeoPoint(lat,lon));
+        Log.wtf("Return data", viewType);
+
+        assert viewType != null;
+        if(viewType.equals("HIKEBIKEMAP")){
+            mv.setTileSource(TileSourceFactory.HIKEBIKEMAP);
+        }else {
+            mv.setTileSource(TileSourceFactory.MAPNIK);
         }
     }
 }
